@@ -1,9 +1,9 @@
+Yo bitches
 
 #include "Simulator.h"
 #include "Plotter.h"
 
 #include "VoltageSource.h"
-#include "Diode.h"
 #include "Resistor.h"
 #include "Capacitor.h"
 

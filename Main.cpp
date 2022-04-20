@@ -1,69 +1,112 @@
-Yo bitches
-
 #include "Simulator.h"
-#include "Plotter.h"
 
-#include "VoltageSource.h"
-#include "Resistor.h"
 #include "Capacitor.h"
+#include "Resistor.h"
+#include "VoltageSource.h"
 
-/*
-
-  Example circuit (rectifier):
-
-     (1)   D1      (2)
-       .--->|---.-------.
-      +|        |       |     +
-  vin (~)    R1 <   C1 ===   vout
-       |        |       |     -
-       '--------+-------'
-               -+- (0)
-                '
-
-  time step = 1e-5 s
-  simulation time = 5 ms
-  
-  vin = 10 * sin(2*pi*1000*t)
-  R1 = 10 Ohm
-  C1 = 1.0 mF
-
-*/
-
-int main()
+class Battery : public Device
 {
-	const double h = 1e-6;
-	const double tmax = 5e-3;
-	const double Va = 10;
-	const double f = 1000;
-	const double R = 10;
-	const double C = 1e-3;
+    /*
+        (int1)         v2        v3
+      v1  o------VVV----o-VVV----o-VVV-----o(nodepos)  vpos
+        + |             |    |   |    |
+          |             '-||-'   '-||-'
+          |
+ Vin(soc)( ) o(int2) ibatt
+          |
+          |
+          |
+          '-------------------------------o(nodeneg)  vneg
 
-	Plotter plotter("Project", 1000, 600);
-	plotter.SetLabels("vin (V)", "iR (A)", "vout (V)");
+               [ v1    ]  int1
+               [ v2    ]  int2
+           x = [ v3    ]  int3
+               [ ibatt ]  int4
+               [ vpos  ]  nodepos
+               [ vneg  ]  nodeneg
 
-	Simulator simulator(2, 0);
+     */
 
-	VoltageSource V1(1, 0, 0, Va, f);
-	Diode D1(1, 2);
-	Resistor R1(2, 0, R);
-	Capacitor C1(2, 0, C);
+public:
+    // Constructor (external nodes and params):
+    Battery(int nodepos, int nodeneg, double soci);
 
-	simulator.AddDevice(V1);
-	simulator.AddDevice(D1);
-	simulator.AddDevice(R1);
-	simulator.AddDevice(C1);
+    // Device interface:
+    void Step(double t, double dt);
+    void Init();
 
-	simulator.Init(h, tmax);
+    // Viewable functions:
+    double GetVoltage();
+    double GetCurrent();
+    double GetSOC();
 
-	while (simulator.IsRunning())
-	{
-		plotter.AddRow(simulator.GetTime(), V1.GetVoltage(),
-			R1.GetCurrent(), C1.GetVoltage());
-		
-		simulator.Step();
-	}
+    // f(soc) functions:
+    double GetVin(double soc);
+    double GetR(double soc);
+    double GetC(double soc);
 
-	plotter.Plot();
-
-	return 0;
+    // Member variables:
+    int nodepos;
+    int nodeneg;
+    int int1;
+    int int2;
+    int int3;
+    int int4;
+    double soci;
+    double soc;  // state of charge
+};
+Battery::Battery(int nodepos, int nodeneg, double soci)
+{
+    this->nodepos = nodepos;
+    this->nodeneg = nodeneg;
+    this->soci = soci;
+}
+void Battery::Init()
+{
+    int1 = GetNextNode();
+    int2 = GetNextNode();
+    int3 = GetNextNode();
+    int4 = GetNextNode();
+    soc = soci;
+}
+void Battery::Step(double t, double h)
+{
+    double Vin = GetVin(soc);
+    double g = 1 / GetR(soc);
+    double wh = 8.1;
+    // R1:
+    AddJacobian(int1, int1, g);
+    AddJacobian(int2, int1, -g);
+    AddJacobian(int1, int2, -g);
+    AddJacobian(int2, int2, g);
+    // R2:
+    AddJacobian(int2, int2, g);
+    AddJacobian(int3, int1, -g);
+    AddJacobian(int2, int3, -g);
+    AddJacobian(int3, int3, g);
+    // R3:
+    AddJacobian(int3, int3, g);
+    AddJacobian(int4, int3, -g);
+    AddJacobian(int3, int4, -g);
+    AddJacobian(int4, int4, g);
+    //Vin
+    AddJacobian(int1, int2, 1);
+    AddJacobian(nodeneg, int2, -1);
+    AddJacobian(int2, int1, 1);
+    AddJacobian(int2, nodeneg, -1);
+    AddBEquivalent(int2, Vin);
+    //C1
+    AddJacobian(int1, int2, 1);
+    AddJacobian(nodeneg, int2, -1);
+    AddJacobian(int2, int1, 1);
+    AddJacobian(int2, nodeneg, -1);
+    AddBEquivalent(int2, Vin);
+    //C2
+    AddJacobian(int1, int2, 1);
+    AddJacobian(nodeneg, int2, -1);
+    AddJacobian(int2, int1, 1);
+    AddJacobian(int2, nodeneg, -1);
+    AddBEquivalent(int2, Vin);
+    // update soc:
+    soc = soc + GetVoltage() * GetCurrent() * h / (wh * 3600);
 }

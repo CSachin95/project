@@ -124,7 +124,6 @@ void Battery::Step(double t, double h)
    // update soc:
     soc = soc + GetVoltage() * GetCurrent() * h / (wh * 3600);
 }
-}
 double Battery::GetVoltage()
 {
     return GetStateDifference(nodepos, nodeneg);

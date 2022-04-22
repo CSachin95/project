@@ -124,23 +124,4 @@ void Battery::Step(double t, double h)
    // update soc:
     soc = soc + GetVoltage() * GetCurrent() * h / (wh * 3600);
 }
-double Battery::GetVoltage()
-{
-    return GetStateDifference(nodepos, nodeneg);
-}
-double Battery::GetCurrent()
-{
-    return GetState(int4); //int4 is ibatt
-}
-double Battery::GetSOC()
-{
-    return soc;
-}
-double Battery::GetVin(double soc)
-{
-    return 3.8 * soc;  // simple linear model
-}
-double Battery::GetR(double soc)
-{
-    return 0.1 + (1 - soc) * 0.01;  // simple linear model
-}
+

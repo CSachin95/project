@@ -61,12 +61,17 @@ public:
     int int4;
     double soci;
     double soc;  // state of charge
+
+
 };
 Battery::Battery(int nodepos, int nodeneg, double soci)
 {
     this->nodepos = nodepos;
     this->nodeneg = nodeneg;
     this->soci = soci;
+
+    Simulator simulator(nodepos, nodeneg);
+
 }
 void Battery::Init()
 {
@@ -135,6 +140,8 @@ void Battery::Step(double t, double h)
     AddBEquivalent(int2, -(C2 / h) * Vin);
     // update soc:
     soc = soc + GetVoltage() * GetCurrent() * h / (wh * 3600);
+
+    
 }
 
 
@@ -180,4 +187,6 @@ double Battery::GetC2(double soc)
 {
     return (-6056.0) * exp(-27.12 * soc) + 4475.0 + 0 * (soc)+0 * (soc)*exp(2) + 0 * (soc)*exp(3);
 }
+
+
 

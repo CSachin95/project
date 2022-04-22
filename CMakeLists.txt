@@ -6,4 +6,5 @@ set(CMAKE_CXX_STANDARD 20)
 
 project(Project)
 
-add_executable(Project "Main.cpp" "Simulator.h" "Matrix.h" "Plotter.h" "VoltageSource.h" "Resistor.h" "Diode")
+add_executable(Project "Main.cpp" "Simulator.h" "Matrix.h" "Plotter.h"
+                "VoltageSource.h" "Resistor.h" "Diode.h" "Battery.h")

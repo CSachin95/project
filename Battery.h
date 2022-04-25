@@ -2,9 +2,6 @@
 
 #include "Simulator.h"
 
-#include "Capacitor.h"
-#include "Resistor.h"
-#include "VoltageSource.h"
 
 class Battery : public Device
 {
@@ -69,9 +66,6 @@ Battery::Battery(int nodepos, int nodeneg, double soci)
     this->nodepos = nodepos;
     this->nodeneg = nodeneg;
     this->soci = soci;
-
-    Simulator simulator(nodepos, nodeneg);
-
 }
 void Battery::Init()
 {
@@ -101,7 +95,7 @@ void Battery::Step(double t, double h)
     AddJacobian(int2, int2, g1);
     // R2:
     AddJacobian(int2, int2, g2);
-    AddJacobian(int3, int1, -g2);
+    AddJacobian(int3, int2, -g2);
     AddJacobian(int2, int3, -g2);
     AddJacobian(int3, int3, g2);
     // R3:
@@ -122,7 +116,7 @@ void Battery::Step(double t, double h)
     AddJacobian(int1, nodepos, 1);
     AddJacobian(nodeneg, nodepos, -1);
     AddJacobian(nodepos, nodepos, 0);
-    AddBEquivalent(int2, Vin);
+    AddBEquivalent(nodepos, Vin);
 
     //C1   
     AddJacobian(int2, int2, C1 / h);
@@ -130,14 +124,14 @@ void Battery::Step(double t, double h)
     AddJacobian(int2, int3, -C1 / h);
     AddJacobian(int3, int3, C1 / h);
     AddBEquivalent(int2, (C1 / h) * Vin);
-    AddBEquivalent(int2, -(C1 / h) * Vin);
+    AddBEquivalent(int3, -(C1 / h) * Vin);
     //C2
     AddJacobian(int3, int3, C2 / h);
     AddJacobian(int4, int3, -C2 / h);
     AddJacobian(int3, int4, -C2 / h);
-    AddJacobian(int4, int4, -C2 / h);
-    AddBEquivalent(int2, (C2 / h) * Vin);
-    AddBEquivalent(int2, -(C2 / h) * Vin);
+    AddJacobian(int4, int4, C2 / h);
+    AddBEquivalent(int3, (C2 / h) * Vin);
+    AddBEquivalent(int4, -(C2 / h) * Vin);
     // update soc:
     soc = soc + GetVoltage() * GetCurrent() * h / (wh * 3600);
 
@@ -162,30 +156,30 @@ double Battery::GetSOC()
 double Battery::GetVin(double soc)
 {
     //return 3.8 * soc;  // simple linear model
-    return  (-1.031) * exp(-35.0 * soc) + 3.685 + 0.2165 * soc + (-0.1178) * (soc)*exp(2) + 0.3201 * (soc)*exp(3);
+    return  (-1.031) * exp(-35.0 * soc) + 3.685 + (0.2156 * soc) + (-0.1178 * (soc*soc)) + (0.3201 * (soc*soc*soc));
 }
 
 double Battery::GetR1(double soc)
 {
     //return 0.1 + (1 - soc) * 0.01;  // simple linear model
-    return (0.1562) * exp(-24.37 * soc) + 0.07446 + 0 * (soc)+0 * (soc)*exp(2) + 0 * (soc)*exp(3);
+    return (0.1562) * exp(-24.37 * soc) + 0.07446;
 }
 double Battery::GetR2(double soc)
 {
-    return (0.3208) * exp(-29.14 * soc) + 0.04669 + 0 * (soc)+0 * (soc)*exp(2) + 0 * (soc)*exp(3);
+    return (0.3208) * exp(-29.14 * soc) + 0.04669;
 }
 double Battery::GetR3(double soc)
 {
-    return (6.603) * exp(-155.2 * soc) + 0.04984 + 0 * (soc)+0 * (soc)*exp(2) + 0 * (soc)*exp(3);
+    return (6.603) * exp(-155.2 * soc) + 0.04984;
 }
 
 double Battery::GetC1(double soc)
 {
-    return (-752.9) * exp(-13.51 * soc) + 703.6 + 0 * (soc)+0 * (soc)*exp(2) + 0 * (soc)*exp(3);
+    return (-752.9) * exp(-13.51 * soc) + 703.6;
 }
 double Battery::GetC2(double soc)
 {
-    return (-6056.0) * exp(-27.12 * soc) + 4475.0 + 0 * (soc)+0 * (soc)*exp(2) + 0 * (soc)*exp(3);
+    return (-6056.0) * exp(-27.12 * soc) + 4475.0;
 }
 
 

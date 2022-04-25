@@ -9,22 +9,44 @@
 
 float nodepos;
 float nodeneg;
+float R1;
+float R2;
+float R3;
+float C1;
+float C2;
 
 int main()
 {
-	Battery GetC1();
-	Battery GetC2();
-	Battery GetR1();
-	Battery GetR2();
-	Battery GetR3();
-	Battery GetV1();
+	const double h = 1e-6;
+	const double tmax = 5e-3;
+	const double Va = 10;
+	const double f = 1000;
+	const double R1a = R1;
+	const double R2a = R2;
+	const double R3a = R3;
+	const double C1a = C1;
+	const double C2a = C2;
 
-	Simulator simulator(nodeneg, nodepos);
+	Plotter plotter("Project", 1000, 600);
+	plotter.SetLabels("vin (V)", "iVbatt (A)", "vout (V)");
+
+	Simulator simulator(nodepos, nodeneg);
+
+	VoltageSource V1(1, 0, 0, Va, f);
+
+	simulator.AddDevice(V1);
+	simulator.AddDevice(R1a);
+	simulator.AddDevice(R2a);
+	simulator.AddDevice(R3a);
+	simulator.AddDevice(C1a);
+	simulator.AddDevice(C2a);
+
+	simulator.Init(h, tmax);
 
 	while (simulator.IsRunning())
 	{
-		plotter.AddRow(simulator.GetTime(), Battery.GetC1(),
-			R1.GetCurrent(), C1.GetVoltage());
+		plotter.AddRow(simulator.GetTime(), V1.GetVoltage(),
+			R1a.GetCurrent(), R2a.GetCurrent(), R3a.GetCurrent(), C1a.GetVoltage(), C2a.GetVoltage());
 
 		simulator.Step();
 	}

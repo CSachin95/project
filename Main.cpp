@@ -28,7 +28,7 @@ int main()
 	while (simulator.IsRunning())
 	{
 
-		plotter.AddRow(simulator.GetTime(), batt.GetSOC(), Rload.GetCurrent(), batt.GetVoltage());  
+		plotter.AddRow(simulator.GetTime(), batt.GetSOC());  
 
 		simulator.Step();
 	}

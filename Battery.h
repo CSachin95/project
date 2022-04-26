@@ -100,23 +100,23 @@ void Battery::Step(double t, double h)
     AddJacobian(int3, int3, g2);
     // R3:
     AddJacobian(int3, int3, g3);
-    AddJacobian(int4, int3, -g3);
-    AddJacobian(int3, int4, -g3);
-    AddJacobian(int4, int4, g3);
+    AddJacobian(nodepos, int3, -g3);
+    AddJacobian(int3, nodepos, -g3);
+    AddJacobian(nodepos, nodepos, g3);
 
-    //Vin  (int5=nodepos) (int6=nodeneg)
+    //Vin  (int4=iVBatt) (int1=V1) (nodeneg = nodeneg)
     AddJacobian(int1, int1, 0);
     AddJacobian(nodeneg, int1, 0);
-    AddJacobian(nodepos, int1, 1);
+    AddJacobian(int4, int1, 1);
 
     AddJacobian(int1, nodeneg, 0);
     AddJacobian(nodeneg, nodeneg, 0);
-    AddJacobian(nodepos, nodeneg, -1);
+    AddJacobian(int4, nodeneg, -1);
 
-    AddJacobian(int1, nodepos, 1);
-    AddJacobian(nodeneg, nodepos, -1);
-    AddJacobian(nodepos, nodepos, 0);
-    AddBEquivalent(nodepos, Vin);
+    AddJacobian(int1, int4, 1);
+    AddJacobian(nodeneg, int4, -1);
+    AddJacobian(int4, int4, 0);
+    AddBEquivalent(int4, Vin);
 
     //C1   
     AddJacobian(int2, int2, C1 / h);
@@ -127,11 +127,11 @@ void Battery::Step(double t, double h)
     AddBEquivalent(int3, -(C1 / h) * Vin);
     //C2
     AddJacobian(int3, int3, C2 / h);
-    AddJacobian(int4, int3, -C2 / h);
-    AddJacobian(int3, int4, -C2 / h);
-    AddJacobian(int4, int4, C2 / h);
+    AddJacobian(nodepos, int3, -C2 / h);
+    AddJacobian(int3, nodepos, -C2 / h);
+    AddJacobian(nodepos, nodepos, C2 / h);
     AddBEquivalent(int3, (C2 / h) * Vin);
-    AddBEquivalent(int4, -(C2 / h) * Vin);
+    AddBEquivalent(nodepos, -(C2 / h) * Vin);
     // update soc:
     soc = soc + GetVoltage() * GetCurrent() * h / (wh * 3600);
 

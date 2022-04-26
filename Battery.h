@@ -123,15 +123,15 @@ void Battery::Step(double t, double h)
     AddJacobian(int3, int2, -C1 / h);
     AddJacobian(int2, int3, -C1 / h);
     AddJacobian(int3, int3, C1 / h);
-    AddBEquivalent(int2, (C1 / h) * Vin);
-    AddBEquivalent(int3, -(C1 / h) * Vin);
+   // AddBEquivalent(int2, (C1 / h) * Vin);
+   // AddBEquivalent(int3, -(C1 / h) * Vin);
     //C2
     AddJacobian(int3, int3, C2 / h);
     AddJacobian(nodepos, int3, -C2 / h);
     AddJacobian(int3, nodepos, -C2 / h);
     AddJacobian(nodepos, nodepos, C2 / h);
-    AddBEquivalent(int3, (C2 / h) * Vin);
-    AddBEquivalent(nodepos, -(C2 / h) * Vin);
+   // AddBEquivalent(int3, (C2 / h) * Vin);
+   // AddBEquivalent(nodepos, -(C2 / h) * Vin);
     // update soc:
     soc = soc + GetVoltage() * GetCurrent() * h / (wh * 3600);
 
